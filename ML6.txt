@@ -1,0 +1,44 @@
+ !pip install mlxtend
+
+ import csv
+ from mlxtend.preprocessing import TransactionEncoder
+ from mlxtend.frequent_patterns import apriori,association_rules
+
+ import pandas as pd
+
+ df=pd.read_csv('/content/Market_Basket_Optimisation.csv')
+
+dataset=[]
+with open("/content/Market_Basket_Optimisation.csv") as file:
+	reader=csv.reader(file,delimiter=',')
+	for row in reader:
+		dataset+=[row]
+
+print("The DataSet is:")
+dataset
+
+te=TransactionEncoder()
+ x=te.fit_transform(dataset)
+ #for converting dataset into structured list form TransactionEncoder is used
+
+ print("The structured list is:\n")
+ x
+
+len(te.columns_)
+
+ df=pd.DataFrame(x,columns=te.columns_)
+
+ print("Printing firset 10 rows of Structured Dataset:")
+ df.head()
+ #trasaction Encoding required for Association rule
+
+#hyper Parameters
+ #parameters which are passed by us to model
+ frequency_items=apriori(df,min_support=0.01,use_colnames=True)
+
+ rules=association_rules(frequency_items,metric='confidence', min_threshold=0.25)
+
+ rules=rules[['antecedents','consequents','support','confidence']]
+
+print("The Association Rule is:\n")
+rules.head()
