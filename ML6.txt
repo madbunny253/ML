@@ -25,3 +25,7 @@ rules = rules[['antecedents','consequents','support','confidence']]
 rules
 
 rules[rules['antecedents']=={'burgers'}]
+
+pivot_table = rules.pivot(index='antecedents', columns='consequents', values='confidence')
+sns.heatmap(pivot_table)
+plt.show()
