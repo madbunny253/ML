@@ -1,98 +1,43 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-df=pd.read_csv("SMSSpamCollection",sep="\t",names=['Label','Message'])
-print("Data for Spam or Ham is:\n",df)
+df = pd.read_csv("/content/Spamham.csv")
+df
 
- !pip install nltk
+df['Ham'] = df['Category'].apply(lambda x:1 if x=='ham' else 0)
+df
 
- import nltk
-
- nltk.download('stopwords')
-
- from nltk.tokenize import word_tokenize
- from nltk.corpus import stopwords
- from nltk.stem import PorterStemmer
- from sklearn.feature_extraction.text import TfidfVectorizer
-
- nltk.download('punkt')
-
- ps=PorterStemmer()
- swords=stopwords.words('english')
-
-def Clean_Text(sentence):
- tokens=word_tokenize(sentence)
- clean=[word for word in tokens
- if word.isdigit() or word.isalpha()]
- clean=[ps.stem(word) for word in clean
- if word not in swords]
- return clean
-
- sentence1="Hello Mayuri How are you? We will be learning Python in Machine Learning Today!!"
- Clean_Text(sentence1)
-
-x=df['Message']
- y=df['Label']
- tfidf=TfidfVectorizer()
- x_new=tfidf.fit_transform(x)
- x_new
-
-before=x.shape
- after=x_new.shape
- print("Shape Before Cleaning:",before)
- print("Shape After Cleaning:",after)
+x  = df['Message']
+y = df['Ham']
 
 from sklearn.model_selection import train_test_split
- x_train,x_test,y_train,y_test=train_test_split(x_new,y,random_state=0,test_size=0.25)
+xtrain, xtest,ytrain,ytest = train_test_split(x,y)
 
- x_train.shape
-y_train.shape
-x_test.shape
- y_test.shape
+from sklearn.feature_extraction.text import CountVectorizer
+v = CountVectorizer()
+x_train_count = v.fit_transform(xtrain)
+x_train_count = x_train_count.toarray()
+x_train_count.shape
 
- from sklearn.naive_bayes import GaussianNB
- nb=GaussianNB()
- nb.fit(x_train.toarray(),y_train)
+from sklearn.naive_bayes import MultinomialNB
+mnb = MultinomialNB()
+mnb.fit(x_train_count,ytrain)
+x_test_count = v.transform(xtest)
+y_pred = mnb.predict(x_test_count)
 
- y_pred=nb.predict(x_test.toarray())
+from sklearn.metrics import classification_report, ConfusionMatrixDisplay
+print(classification_report(ytest,y_pred))
 
-from sklearn.metrics import ConfusionMatrixDisplay,accuracy_score
- print("The Matrix Display is:\n",ConfusionMatrixDisplay.from_predictions(y_test,y_pred))
+print(ConfusionMatrixDisplay.from_predictions(ytest,y_pred))
 
- from sklearn.metrics import classification_report
- print("Classification Report is:\n",classification_report(y_test,y_pred))
+from sklearn.naive_bayes import GaussianNB
+gnb =  GaussianNB()
+gnb.fit(x_train_count,ytrain)
+x_test_count = x_test_count.toarray()
+y_pred_gnb = gnb.predict(x_test_count)
 
-print("Accuracy Score:",accuracy_score(y_test,y_pred))
+print(classification_report(ytest,y_pred_gnb))
 
-from sklearn.ensemble import RandomForestClassifier
- rf=RandomForestClassifier(random_state=0)
- rf.fit(x_train,y_train)
- y_pred=rf.predict(x_test)
-
- ConfusionMatrixDisplay.from_predictions(y_test,y_pred)
-
-from sklearn.metrics import classification_report
- print("Classification Report is:\n",classification_report(y_test,y_pred))
-
- print("Accuracy Score:",accuracy_score(y_test,y_pred))
-
- from sklearn.linear_model import LogisticRegression
- log=LogisticRegression()
- log.fit(x_train,y_train)
- y_pred=log.predict(x_test)
- print("Accuracy Score:",accuracy_score(y_test,y_pred))
-
-from sklearn.model_selection import GridSearchCV
- parameters={
- 'criterion':['grid','entropy'],
- 'max_features':['sqrt','log2'],
- 'random_state':[0,1,2,3,4,5],
- 'class_weight':['balanced','balanced_subsample']
- }
-
-grid=GridSearchCV(rf,param_grid=parameters,cv=5,scoring='accuracy')
- grid.fit(x_train,y_train)
-
- rf=grid.best_estimator_
- y_pred=rf.predict(x_test)
- print("Accuracy Score:",accuracy_score(y_test,y_pred))
+print(ConfusionMatrixDisplay.from_predictions(ytest,y_pred_gnb))
